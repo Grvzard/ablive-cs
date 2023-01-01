@@ -1,0 +1,6 @@
+[flake8]
+max-line-length = 88
+extend-ignore = E203, E251, F403, F405
+exclude = 
+    .*,
+    __*,
