@@ -22,7 +22,7 @@ else:
     ABLIVE_SERVER_URL = ""
     MY_DB_CONFIG = {
         "host": "",
-        "port": ,
+        "port": 3306,
         "user": "",
         "password": "",
     }
