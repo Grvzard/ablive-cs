@@ -98,7 +98,7 @@ class PackDog(DanmakuListener):
         if msg['blind_gift']:
             # e.g. '[紫金宝盒]玫瑰x4'
             gift_info = '[%s]%s' % (msg['blind_gift']['original_gift_name'], gift_info)
-            gift_cost = msg['blind_gift']['original_gift_price'] / 1000
+            gift_cost = msg['total_coin'] / 1000
 
         self.buffer_gf.put(
             {
