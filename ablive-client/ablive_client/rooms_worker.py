@@ -31,6 +31,7 @@ class RoomsWorker:
         self.REG_DETAIL = {'detail': detail}
         self.SERVER_URL = server_url
         self.ADD_ROOM_INTERVAL = add_room_interval
+        self.async_sem = asyncio.Semaphore(200)
 
     def _renew_states(self) -> None:
         self.rooms = set()
@@ -150,7 +151,7 @@ class RoomsWorker:
         dc.add_listener(self.pack_dog)
         self.dc_dict[liverid] = dc
         # await dc._do_start()
-        async with asyncio.Semaphore(200):
+        async with self.async_sem:
             self._add_async_task(dc._do_start())
 
     async def remove_room(self, room: tuple[int, int]):
@@ -158,5 +159,5 @@ class RoomsWorker:
         self.rooms.discard(room)
         dc = self.dc_dict.pop(liverid)
         # await dc._do_stop()
-        async with asyncio.Semaphore(200):
+        async with self.async_sem:
             self._add_async_task(dc._do_stop())
