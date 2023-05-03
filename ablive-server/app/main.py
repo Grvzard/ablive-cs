@@ -4,8 +4,8 @@ from fastapi import FastAPI, status
 from fastapi.responses import JSONResponse
 
 from . import api_v2
-from .active_checker import active_checker
-from .config import settings
+from app.active_checker import active_checker
+from app.core.config import settings
 
 app = FastAPI(
     root_path=settings.API_PREFIX,

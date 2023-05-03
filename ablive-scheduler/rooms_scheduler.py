@@ -2,7 +2,7 @@ import logging
 from threading import Thread
 from collections import deque
 from contextlib import suppress
-from typing import Union, TypeVar
+from typing import Union
 
 import pymongo
 
@@ -22,7 +22,7 @@ logger.addHandler(handler)
 
 
 class RoomsWorker:
-    __slots__ = '_id', 'rooms', 'length'
+    __slots__ = ('_id', 'rooms', 'length')
 
     def __init__(self, worker_doc: dict):
         self._id = worker_doc['_id']
@@ -68,9 +68,9 @@ class WorkerFeeder:
 
 class RoomsScheduler(Thread):
     def __init__(self):
-        Thread.__init__(self)
+        super().__init__()
         self.coll = get_client('local')['bili_liveroom']['workers']
-        self.workers: list[RoomsWorker] = None
+        self.workers: list[RoomsWorker] = []
 
     def do_schedule(self) -> None:
         logger.info("scheduler running")
@@ -88,8 +88,7 @@ class RoomsScheduler(Thread):
 
     def _renew_workers(self):
         _worker_docs = self.coll.find({})
-        # self.workers = [RoomsWorker(worker_doc) for worker_doc in _worker_docs]
-        self.workers = list(map(RoomsWorker, _worker_docs))
+        self.workers = [RoomsWorker(_) for _ in _worker_docs]
         self.workers_len = len(self.workers)
 
     def _adjust_workers(self, rooms_pool: set[tuple[int, int]]):
@@ -120,4 +119,7 @@ class RoomsScheduler(Thread):
         )
 
     def run(self):
-        self.do_schedule()
+        try:
+            self.do_schedule()
+        except Exception as exc:
+            logger.error(f"[error] {exc!r}")

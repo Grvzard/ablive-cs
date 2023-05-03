@@ -3,7 +3,7 @@ import logging
 import time
 from concurrent.futures import ThreadPoolExecutor
 from multiprocessing import Queue
-from typing import Any, Literal
+from typing import Any
 
 import sqlalchemy as sa
 from sqlalchemy import create_engine, text
@@ -98,7 +98,8 @@ class StoreDog:
             self._new_table(schema)
             self._insert(schema, next_rows)
         else:
-            rows and self._insert(schema, rows)
+            if rows:
+                self._insert(schema, rows)
 
         logger.info(f"{schema} + {rows_cnt}")
 

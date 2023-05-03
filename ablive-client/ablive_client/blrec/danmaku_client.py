@@ -310,7 +310,7 @@ class Frame:
         return header + body
 
     @staticmethod
-    def decode(data: bytes) -> Tuple[int, Union[int, str, List[bytes]]]:
+    def decode(data: bytes) -> Tuple[int, Union[int, bytes, List[bytes]]]:
         plen, hlen, ver, op, _ = struct.unpack_from(Frame.HEADER_FORMAT, data, 0)
         body = data[hlen:]
 

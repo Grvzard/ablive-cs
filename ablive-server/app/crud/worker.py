@@ -3,11 +3,9 @@ from functools import wraps
 from typing import Optional
 
 from bson.objectid import ObjectId
-from motor import motor_asyncio
 
-from .config import settings
+from app.core.database import mongo_client
 
-mongo_client = motor_asyncio.AsyncIOMotorClient(settings.MONGO_URI)
 workers_coll = mongo_client['bili_liveroom']['workers']
 
 
@@ -37,6 +35,7 @@ class Worker:
                 }
             }
 
+    @staticmethod
     @validate_workerid
     async def active(worker_id: str) -> bool:
         result = await workers_coll.update_one({
@@ -48,6 +47,7 @@ class Worker:
         )
         return result.matched_count == 1
 
+    @staticmethod
     @validate_workerid
     async def is_checked(worker_id: str) -> bool:
         result = await workers_coll.update_one({
@@ -58,11 +58,13 @@ class Worker:
         )
         return result.modified_count == 0
 
+    @staticmethod
     @validate_workerid
-    async def retrieve(worker_id: str) -> Optional[dict]:
+    async def retrieve(worker_id: str) -> dict:
         worker = await workers_coll.find_one({"_id": ObjectId(worker_id)})
         return worker
 
+    @staticmethod
     async def add(worker_detail: str) -> ObjectId:
         result = await workers_coll.insert_one({
                 "created": datetime.utcnow(),
@@ -75,6 +77,7 @@ class Worker:
         )
         return result.inserted_id
 
+    @staticmethod
     async def remove_expired(seconds: int) -> int:
         result = await workers_coll.delete_many(Worker.Status.expired(seconds))
         return result.deleted_count

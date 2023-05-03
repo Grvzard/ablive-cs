@@ -10,6 +10,9 @@ from .config import settings
 async def verify_api_key(
     x_api_key: Optional[str] = Header(),
 ) -> None:
+    if not settings.API_KEY:
+        return
+
     auth_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail='invalid api key',

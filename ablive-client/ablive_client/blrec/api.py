@@ -28,7 +28,7 @@ class BaseApi(ABC):
 
 
 class WebApi(BaseApi):
-    BASE_API_URL: Final[str] = 'https://api.bilibili.com'
+    # BASE_API_URL: Final[str] = 'https://api.bilibili.com'
     BASE_LIVE_API_URL: Final[str] = 'https://api.live.bilibili.com'
 
     GET_DANMU_INFO_URL: Final[str] = BASE_LIVE_API_URL + \

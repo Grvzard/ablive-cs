@@ -1,7 +1,7 @@
 import asyncio
 import logging
 
-from .crud import Worker
+from app.crud.worker import Worker
 
 logger = logging.getLogger(__name__)
 

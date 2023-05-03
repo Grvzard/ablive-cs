@@ -24,7 +24,7 @@ class RoomsWorker:
         detail: str,
         api_key: str,
         server_url: str,
-        add_room_interval: int = 0.05,
+        add_room_interval: float = 0.05,
     ):
         self.worker_id = ''
         self.REQUEST_HEADER = {'x-api-key': api_key}
@@ -77,8 +77,8 @@ class RoomsWorker:
 
     async def _adjust_rooms(self, rooms: list[list[int]]):
         self._adjusting = 1
-        rooms = {tuple(room) for room in rooms}
-        rooms_diff = self.compare_rooms(rooms)
+        rooms_ = {tuple(room) for room in rooms}
+        rooms_diff = self.compare_rooms(rooms_)
 
         try:
             for room in rooms_diff['dec']:

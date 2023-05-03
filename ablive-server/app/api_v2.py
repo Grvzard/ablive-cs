@@ -1,9 +1,8 @@
 
 from fastapi import APIRouter, Depends
-from fastapi.responses import JSONResponse
 
-from .crud import Worker
-from .security import verify_api_key
+from app.crud.worker import Worker
+from app.core.security import verify_api_key
 
 router = APIRouter()
 
@@ -40,10 +39,8 @@ async def get_worker_rooms(worker_id: str):
         }
     else:
         worker = await Worker.retrieve(worker_id)
-        return JSONResponse(
-            content={
-                'ok': True,
-                'interval': 40,
-                'rooms': worker['rooms'],
-            }
-        )
+        return {
+            'ok': True,
+            'interval': 40,
+            'rooms': worker['rooms'],
+        }

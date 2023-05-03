@@ -10,8 +10,11 @@ def fill_rooms_pool() -> list[tuple[int, int]]:
     db = get_client('remote_main')['bili_liveroom']
 
     # blive rooms 是不管直播状态、全天录制的房间
-    blive_rooms = db['settings'].find_one({'key': 'blive_rooms'})['value']
-    for room in blive_rooms:
+    _blive_rooms = db['settings'].find_one({'key': 'blive_rooms'})
+    if not _blive_rooms:
+        raise Exception("no blive_rooms")
+
+    for room in _blive_rooms['value']:
         rooms_weight_map[tuple(room)] = 1000000
 
     # rooms_state 库提供正在直播的房间，加权排序后填充 rooms_pool
