@@ -1,10 +1,12 @@
 
 from mongodb import get_client
+from configs import Config
 
 __all__ = 'fill_rooms_pool',
 
 
 def fill_rooms_pool() -> list[tuple[int, int]]:
+    area_weight = Config.AREA_WEIGHT
     rooms_weight_map = {}
 
     db = get_client('remote_main')['bili_liveroom']
@@ -33,24 +35,10 @@ def fill_rooms_pool() -> list[tuple[int, int]]:
             (doc['uid'], doc['roomid']),
             # e.g: 电台区 105人看过 weight = 10 * (105 + 1) = 1060
             # e.g: 知识区 0人看过 weight = 5 * (0 + 1) = 5
-            AREA_WEIGHT[doc['parent_name']] * (doc['watched_num'] + 1)
+            area_weight[doc['parent_name']] * (doc['watched_num'] + 1)
         )
 
     return [_[0] for _ in sorted(rooms_weight_map.items(), key=lambda x: x[1], reverse=True)]
-
-
-AREA_WEIGHT = {
-    '虚拟主播': 10,
-    '电台': 10,
-    '娱乐': 10,
-    '生活': 10,
-    '单机游戏': 1,
-    '手游': 1,
-    '网游': 1,
-    '赛事': 1,
-    '学习': 5,  # 学习区已经变成知识区
-    '知识': 5,
-}
 
 
 if __name__ == '__main__':
