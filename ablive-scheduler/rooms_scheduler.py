@@ -120,8 +120,12 @@ class RoomsScheduler(Thread):
         self._update_hb('rooms_scheduler')
 
     def _update_hb(self, module_name: str):
+        tstamp = int(time.time())
+        clock = time.strftime("%H:%M:%S", time.localtime())
         self.db['heartbeat'].update_one(
-            {"module": module_name}, {"$set": {"hb_ts": int(time.time())}}, upsert=True
+            {"module": module_name},
+            {"$set": {"hb_ts": tstamp, "hb": clock}},
+            upsert=True,
         )
 
     def run(self):
