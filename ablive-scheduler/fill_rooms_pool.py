@@ -33,9 +33,7 @@ def fill_rooms_pool() -> list[tuple[int, int]]:
     for doc in ablive_rooms:
         rooms_weight_map.setdefault(
             (doc['uid'], doc['roomid']),
-            # e.g: 电台区 105人看过 weight = 10 * (105 + 1) = 1060
-            # e.g: 知识区 0人看过 weight = 5 * (0 + 1) = 5
-            area_weight[doc['parent_name']] * (doc['watched_num'] + 1),
+            doc['watched_num'] + area_weight[doc['parent_name']],
         )
 
     return [
