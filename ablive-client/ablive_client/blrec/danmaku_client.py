@@ -42,34 +42,26 @@ class DanmakuListener(EventListener):
 
 class DanmakuClient(EventEmitter[DanmakuListener]):
     _HEARTBEAT_INTERVAL: Final[int] = 30
+    _HEADERS = {'Connection': 'Upgrade'}
+    _MAX_RETRIES: Final[int] = 1000
+
+    __slots__ = ("session", "_room_id", "_liverid", "_danmu_info", "_host_index", "_retry_count", "_retry_delay", "_ws")
 
     def __init__(
         self,
         session: ClientSession,
         liverid: int,
         room_id: int,
-        *,
-        max_retries: int = 1000,
     ) -> None:
         super().__init__()
         self.session = session
-        self.webapi = WebApi(self.session)
         self._room_id = room_id
         self._liverid = liverid
-        self.headers = {}
 
         self._danmu_info: Dict[str, Any] = COMMON_DANMU_INFO
         self._host_index: int = 0
+        self._retry_count = 0
         self._retry_delay: int = 0
-        self._MAX_RETRIES: Final[int] = max_retries
-
-    @property
-    def headers(self) -> Dict[str, str]:
-        return self._headers
-
-    @headers.setter
-    def headers(self, value: Dict[str, str]) -> None:
-        self._headers = {**value, 'Connection': 'Upgrade'}
 
     async def _do_start(self) -> None:
         await self._update_danmu_info()
@@ -119,7 +111,7 @@ class DanmakuClient(EventEmitter[DanmakuListener]):
         logger.debug(f'Connecting WebSocket... {url}')
         try:
             self._ws = await self.session.ws_connect(
-                url, timeout=5, headers=self.headers
+                url, timeout=5, headers=self._HEADERS
             )
         except Exception as exc:
             logger.debug(f'Failed to connect WebSocket: {repr(exc)}')
@@ -172,7 +164,7 @@ class DanmakuClient(EventEmitter[DanmakuListener]):
             self._create_heartbeat_task()
 
     async def _update_danmu_info(self) -> None:
-        api = self.webapi
+        api = WebApi(self.session)
         try:
             # self._danmu_info = await api.get_danmu_info(self._room_id)
             _chat_conf = await api.get_chat_conf(self._room_id)

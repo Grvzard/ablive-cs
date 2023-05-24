@@ -33,7 +33,7 @@ schemas_def = read_json('ablive_schema.json')
 
 
 class StoreDog:
-    def __init__(self, mysql_config: str):
+    def __init__(self, mysql_config: dict):
         self.mysql_config = mysql_config
         self.buffer: dict[str, Queue] = {}
         self.schema: dict[str, Schema] = {}

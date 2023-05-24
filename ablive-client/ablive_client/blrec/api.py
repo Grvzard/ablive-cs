@@ -8,9 +8,12 @@ __all__ = 'WebApi',
 
 
 class BaseApi(ABC):
+    _TIMEOUT = 10
+
+    __slots__ = '_session',
+
     def __init__(self, session: aiohttp.ClientSession):
         self._session = session
-        self.timeout = 10
 
     @retry(
         reraise=True,
@@ -21,7 +24,7 @@ class BaseApi(ABC):
         async with self._session.get(
             *args,
             **kwds,
-            timeout=self.timeout,
+            timeout=self._TIMEOUT,
         ) as res:
             json_res = await res.json()
             return json_res
@@ -35,6 +38,8 @@ class WebApi(BaseApi):
         '/xlive/web-room/v1/index/getDanmuInfo'
     GET_CHAT_CONF_URL: Final[str] = BASE_LIVE_API_URL + \
         '/room/v1/Danmu/getConf'
+
+    __slots__ = ()
 
     async def get_danmu_info(self, room_id: int):
         params = {
