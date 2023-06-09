@@ -24,8 +24,8 @@ class PackDog(DanmakuListener):
             self.on_user_toast_msg(danmu)
         elif cmd == DanmakuCommand.SUPER_CHAT_MESSAGE.value:
             self.on_super_chat_message(danmu)
-
-        return None
+        elif cmd == DanmakuCommand.USER_VIRTUAL_MVP.value:
+            self.on_user_virtual_mvp(danmu)
 
     def on_interact_word(self, msg):
         liverid = msg['liverid']
@@ -105,6 +105,22 @@ class PackDog(DanmakuListener):
                 **sql_data,
                 'gift_info': gift_info,
                 'gift_cost': gift_cost,
+            }
+        )
+
+    def on_user_virtual_mvp(self, msg):
+        liverid = msg['liverid']
+        msg = msg['data']
+
+        gift_info = f'[MVP]{msg["action"]}{msg["goods_name"]}x{msg["goods_num"]}'
+        self.buffer_gf.put(
+            {
+                'ts': msg["timestamp"],
+                'uid': msg["uid"],
+                'uname': msg["uname"],
+                'liverid': liverid,
+                'gift_info': gift_info,
+                'gift_cost': msg["goods_price"] / 1000,
             }
         )
 
