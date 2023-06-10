@@ -1,4 +1,8 @@
+import logging
+
 from .blrec import Danmaku, DanmakuCommand, DanmakuListener
+
+logger = logging.getLogger(__name__)
 
 
 class PackDog(DanmakuListener):
@@ -12,20 +16,24 @@ class PackDog(DanmakuListener):
     async def on_danmaku_received(self, danmu: Danmaku) -> None:
         cmd: str = danmu['cmd']
 
-        if cmd.startswith(DanmakuCommand.DANMU_MSG.value):
-            self.on_danmu_msg(danmu)
-        elif cmd == DanmakuCommand.INTERACT_WORD.value:
-            self.on_interact_word(danmu)
-        # elif cmd == DanmakuCommand.ENTRY_EFFECT.value:
-        #     self.on_entry_effect(danmu)
-        elif cmd == DanmakuCommand.SEND_GIFT.value:
-            self.on_send_gift(danmu)
-        elif cmd == DanmakuCommand.USER_TOAST_MSG.value:
-            self.on_user_toast_msg(danmu)
-        elif cmd == DanmakuCommand.SUPER_CHAT_MESSAGE.value:
-            self.on_super_chat_message(danmu)
-        elif cmd == DanmakuCommand.USER_VIRTUAL_MVP.value:
-            self.on_user_virtual_mvp(danmu)
+        try:
+            if cmd.startswith(DanmakuCommand.DANMU_MSG.value):
+                self.on_danmu_msg(danmu)
+            elif cmd == DanmakuCommand.INTERACT_WORD.value:
+                self.on_interact_word(danmu)
+            # elif cmd == DanmakuCommand.ENTRY_EFFECT.value:
+            #     self.on_entry_effect(danmu)
+            elif cmd == DanmakuCommand.SEND_GIFT.value:
+                self.on_send_gift(danmu)
+            elif cmd == DanmakuCommand.USER_TOAST_MSG.value:
+                self.on_user_toast_msg(danmu)
+            elif cmd == DanmakuCommand.SUPER_CHAT_MESSAGE.value:
+                self.on_super_chat_message(danmu)
+            elif cmd == DanmakuCommand.USER_VIRTUAL_MVP.value:
+                self.on_user_virtual_mvp(danmu)
+
+        except Exception as e:
+            logger.error(f'error in pack_dog: {e}')
 
     def on_interact_word(self, msg):
         liverid = msg['liverid']

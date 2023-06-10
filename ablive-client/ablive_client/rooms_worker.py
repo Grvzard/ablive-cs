@@ -9,13 +9,6 @@ from .blrec import DanmakuClient
 from .pack_dog import PackDog
 
 logger = logging.getLogger(__name__)
-logger.setLevel(logging.INFO)
-fmt = logging.Formatter("[%(asctime)s][%(module)s] %(message)s")
-
-_h = logging.FileHandler('error.worker.log', encoding='utf-8')
-_h.setFormatter(fmt)
-_h.setLevel(logging.ERROR)
-logger.addHandler(_h)
 
 
 class RoomsWorker:
@@ -106,7 +99,7 @@ class RoomsWorker:
 
     def _async_task_callback(self, fut):
         if e := fut.exception():
-            logger.error(e)
+            logger.error(f"worker async task error: {e}")
         self._tasks.discard(fut)
 
     async def run(self):

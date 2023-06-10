@@ -12,11 +12,12 @@ from configs import *
 logging.basicConfig(
     format="[%(asctime)s][%(module)s] %(message)s"
 )
-logger = logging.getLogger(__name__)
+logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-_h = logging.FileHandler('error.main.log', encoding='utf-8')
+_h = logging.FileHandler('error.log', encoding='utf-8')
 _h.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
+_h.setLevel(logging.ERROR)
 logger.addHandler(_h)
 
 
@@ -46,7 +47,7 @@ def worker_thread(buffer: dict):
         try:
             asyncio.run(rooms_worker.run())
         except Exception as e:
-            logger.error(e)
+            logger.error(f'worker thread: {e}')
         time.sleep(5)
 
 

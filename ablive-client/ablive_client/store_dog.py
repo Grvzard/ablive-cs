@@ -108,6 +108,9 @@ class StoreDog:
             return
         engine = self.engine[schema]
         table = self.table[schema]
-        with Session(engine) as session:
-            session.execute(text(table.sql_insert), rows)
-            session.commit()
+        try:
+            with Session(engine) as session:
+                session.execute(text(table.sql_insert), rows)
+                session.commit()
+        except Exception as e:
+            logger.error(e)
