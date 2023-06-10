@@ -173,7 +173,7 @@ class PackDog(DanmakuListener):
         liverid = msg['liverid']
         msg = msg['data']
 
-        _toast_msg = msg['toast_msg'].split()[-1]
+        _toast_msg = msg['toast_msg'].split('，')[-1]
 
         sql_data = {
             'ts': msg['start_time'],
