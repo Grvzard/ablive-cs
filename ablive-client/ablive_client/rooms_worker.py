@@ -1,12 +1,10 @@
 import asyncio
 import logging
-from contextlib import suppress
 
 import aiohttp
 from tenacity import retry, stop_after_attempt, stop_after_delay
 
-from .blrec import DanmakuClient
-from .pack_dog import PackDog
+from .blrec import DanmakuClient, DanmakuListener
 
 logger = logging.getLogger(__name__)
 
@@ -25,6 +23,7 @@ class RoomsWorker:
         self.SERVER_URL = server_url
         self.ADD_ROOM_INTERVAL = add_room_interval
         self.async_sem = asyncio.Semaphore(200)
+        self.pack_dogs = set()
 
     def _renew_states(self) -> None:
         self.rooms = set()
@@ -32,8 +31,8 @@ class RoomsWorker:
         self.dc_dict = {}
         self._adjusting = 0
 
-    def init_packdog(self, buffer) -> None:
-        self.pack_dog = PackDog(buffer)
+    def add_packdog(self, packer: DanmakuListener) -> None:
+        self.pack_dogs.add(packer)
 
     @retry(reraise=True, stop=stop_after_attempt(2))
     async def _worker_reg(self) -> None:
@@ -141,7 +140,8 @@ class RoomsWorker:
             room_id=room_id,
         )
         self.rooms.add(room)
-        dc.add_listener(self.pack_dog)
+        for packer in self.pack_dogs:
+            dc.add_listener(packer)
         self.dc_dict[liverid] = dc
         # await dc._do_start()
         async with self.async_sem:

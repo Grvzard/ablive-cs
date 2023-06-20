@@ -7,6 +7,7 @@ from threading import Thread
 
 from ablive_client.rooms_worker import RoomsWorker
 from ablive_client.store_dog import StoreDog
+from ablive_client.pack_dog import PackDog
 from configs import *
 
 logging.basicConfig(
@@ -41,7 +42,9 @@ def worker_thread(buffer: dict):
         add_room_interval = ADD_ROOM_INTERVAL,
         server_url = ABLIVE_SERVER_URL,
     )
-    rooms_worker.init_packdog(buffer)
+
+    rooms_worker.add_packdog(PackDog(buffer))
+
     while True:
         logger.info("new rooms-worker started")
         try:

@@ -39,9 +39,9 @@ class StoreDog:
         self.schema: dict[str, Schema] = {}
         self.engine: dict[str, sa.engine.Engine] = {}
         self.table: dict[str, Table] = {}
-        for schema in ["ablive_dm", "ablive_en", "ablive_gf", "ablive_sc"]:
-            self.buffer[schema] = Queue()
-            self.schema[schema] = Schema(**schemas_def[schema])
+        for schema_name, schema_schema in schemas_def.items():
+            self.buffer[schema_name] = Queue()
+            self.schema[schema_name] = Schema(**schema_schema)
 
     def run(self):
         self.init_db()
