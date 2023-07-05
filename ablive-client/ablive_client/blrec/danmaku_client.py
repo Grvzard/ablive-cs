@@ -122,7 +122,7 @@ class DanmakuClient(EventEmitter[DanmakuListener]):
     async def _send_auth(self) -> None:
         auth_msg = json.dumps(
             {
-                'uid': 0,
+                'uid': self._liverid,
                 'roomid': self._room_id,
                 'protover': WS.BODY_PROTOCOL_VERSION_BROTLI,
                 'platform': 'web',
