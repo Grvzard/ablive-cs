@@ -129,7 +129,7 @@ async fn fill_rooms_pool() -> Vec<Room> {
         .unwrap();
     while let Some(doc) = ablive_rooms.try_next().await.unwrap() {
         weighted_rooms.push(WeightedRoom {
-            weight: *area_weight.get(&doc.parent_name).unwrap(),
+            weight: *area_weight.get(&doc.parent_name).unwrap() + doc.watched_num as i64,
             room: Room(doc.uid, doc.roomid),
         })
     }
