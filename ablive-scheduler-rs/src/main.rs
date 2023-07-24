@@ -2,14 +2,12 @@ mod settings;
 
 use bson::{bson, doc, oid::ObjectId, Bson};
 use futures::stream::TryStreamExt;
-use mongodb;
 use serde::{self, Deserialize, Serialize};
 use settings::Settings;
 use std::{
     collections::{HashSet, VecDeque},
     hash::Hash,
 };
-use tokio;
 
 #[derive(Debug, Serialize, Deserialize, Eq, PartialEq, Hash, Clone)]
 struct Room(i64, i64); // (liver_uid, room_id)
@@ -176,7 +174,7 @@ async fn fetch_workers(mgdb: &mongodb::Database) -> Vec<RoomsWorker> {
 }
 
 async fn adjust_workers(
-    workers: &mut Vec<RoomsWorker>,
+    workers: &mut [RoomsWorker],
     mut rooms: HashSet<Room>,
     rooms_per_worker: i32,
 ) {
@@ -209,7 +207,7 @@ async fn adjust_workers(
     }
 }
 
-async fn update_workers(mgdb: &mongodb::Database, workers: &Vec<RoomsWorker>) {
+async fn update_workers(mgdb: &mongodb::Database, workers: &[RoomsWorker]) {
     for worker in workers.iter() {
         let doc = RoomsWorkerDoc::from(worker.clone());
         mgdb.collection::<RoomsWorkerDoc>("workers")
