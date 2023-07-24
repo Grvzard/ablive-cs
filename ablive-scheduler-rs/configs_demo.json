@@ -1,0 +1,17 @@
+{
+    "mongo_liveroom": "mongodb://localhost:27017/",
+    "mongo_worker": "mongodb://localhost:27017/",
+    "rooms_per_worker": 50,
+    "area_weight": {
+        "虚拟主播": 1,
+        "电台": 1,
+        "娱乐": 1,
+        "生活": 1,
+        "单机游戏": 1,
+        "手游": 1,
+        "网游": 1,
+        "赛事": 1,
+        "知识": 1,
+        "大事件": 1
+    }
+}
