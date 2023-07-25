@@ -1,6 +1,7 @@
 mod settings;
 
 use bson::{bson, doc, oid::ObjectId, Bson};
+use chrono::prelude::*;
 use futures::stream::TryStreamExt;
 use serde::{self, Deserialize, Serialize};
 use settings::Settings;
@@ -89,12 +90,19 @@ impl RoomsWorker {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct KvSettings<T> {
+struct SettingsColl<T> {
     key: String,
     value: T,
 }
 
-type Liverooms = KvSettings<Vec<Room>>;
+type LiveroomsColl = SettingsColl<Vec<Room>>;
+
+#[allow(dead_code)]
+struct HeartbeatColl {
+    module: String,
+    hb_ts: i64,
+    hb: chrono::DateTime<Utc>,
+}
 
 async fn fill_rooms_pool() -> Vec<Room> {
     let settings = Settings::new().unwrap();
@@ -108,7 +116,7 @@ async fn fill_rooms_pool() -> Vec<Room> {
 
     let blive_rooms: Vec<Room> = mg_cli
         .database("bili_liveroom")
-        .collection::<Liverooms>("settings")
+        .collection::<LiveroomsColl>("settings")
         .find_one(doc! { "key": "blive_rooms" }, None)
         .await
         .unwrap()
@@ -157,7 +165,7 @@ async fn do_schedule() {
         .collect();
     adjust_workers(&mut workers, rooms_pool, settings.rooms_per_worker).await;
     update_workers(&mgdb, &workers).await;
-    // update_hb(&mgdb, &mg_cli).await?;
+    update_hb(&mgdb).await;
 }
 
 async fn fetch_workers(mgdb: &mongodb::Database) -> Vec<RoomsWorker> {
@@ -219,6 +227,23 @@ async fn update_workers(mgdb: &mongodb::Database, workers: &[RoomsWorker]) {
             .await
             .unwrap();
     }
+}
+
+async fn update_hb(mgdb: &mongodb::Database) {
+    let now = Utc::now();
+    let ts: i64 = now.timestamp();
+    mgdb.collection::<HeartbeatColl>("heartbeat")
+        .update_one(
+            doc! {"module": "ablive-scheduler"},
+            doc! {"$set": {"hb_ts": ts, "hb": now}},
+            Some(
+                mongodb::options::UpdateOptions::builder()
+                    .upsert(true)
+                    .build(),
+            ),
+        )
+        .await
+        .unwrap();
 }
 
 #[tokio::main]
