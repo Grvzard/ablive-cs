@@ -183,14 +183,14 @@ async fn fetch_workers(mgdb: &mongodb::Database) -> Vec<RoomsWorker> {
 
 async fn adjust_workers(
     workers: &mut [RoomsWorker],
-    mut rooms: HashSet<Room>,
+    mut rooms_pool: HashSet<Room>,
     rooms_per_worker: i32,
 ) {
     for worker in workers.iter_mut() {
         let rooms: HashSet<Room> = worker
             .rooms
             .iter()
-            .filter(|room| rooms.remove(room))
+            .filter(|&room| rooms_pool.remove(room))
             .cloned()
             .collect();
         *worker = RoomsWorker {
@@ -198,14 +198,15 @@ async fn adjust_workers(
             length: rooms.len() as i32,
             rooms,
         };
+        dbg!("{}", worker.length);
     }
     let mut workers_nonfull: VecDeque<&mut RoomsWorker> = workers
         .iter_mut()
         .filter(|worker| worker.length < rooms_per_worker)
         .collect();
-    for room in rooms.iter() {
+    for room in rooms_pool.into_iter() {
         if let Some(worker) = workers_nonfull.front_mut() {
-            worker.rooms_append(room.clone());
+            worker.rooms_append(room);
             if worker.length >= rooms_per_worker {
                 workers_nonfull.pop_front();
             }
