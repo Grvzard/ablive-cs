@@ -43,6 +43,7 @@ struct RoomStateDoc {
 #[derive(Debug, Serialize, Deserialize)]
 struct RoomsWorkerDoc {
     _id: ObjectId,
+    checked: i32,
     length: i32,
     rooms: Vec<Room>,
 }
@@ -68,6 +69,7 @@ impl From<RoomsWorker> for RoomsWorkerDoc {
     fn from(worker: RoomsWorker) -> Self {
         RoomsWorkerDoc {
             _id: worker._id,
+            checked: 0,
             length: worker.length,
             rooms: worker.rooms.into_iter().collect(),
         }
@@ -222,7 +224,7 @@ async fn update_workers(mgdb: &mongodb::Database, workers: &[RoomsWorker]) {
         mgdb.collection::<RoomsWorkerDoc>("workers")
             .update_one(
                 doc! { "_id": &doc._id },
-                doc! { "$set": {"rooms": &doc.rooms, "length": &doc.length} },
+                doc! { "$set": {"rooms": &doc.rooms, "length": &doc.length, "checked": 0} },
                 None,
             )
             .await
