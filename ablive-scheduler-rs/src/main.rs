@@ -114,7 +114,7 @@ async fn fill_rooms_pool() -> Vec<Room> {
         .await
         .unwrap();
 
-    let mut weighted_rooms: Vec<WeightedRoom> = vec![];
+    let mut weighted_rooms: Vec<WeightedRoom> = Vec::with_capacity(10_000);
 
     let blive_rooms: Vec<Room> = mg_cli
         .database("bili_liveroom")
@@ -127,7 +127,7 @@ async fn fill_rooms_pool() -> Vec<Room> {
     for room in blive_rooms {
         weighted_rooms.push(WeightedRoom {
             weight: 1000000,
-            room: Room(room.0, room.1),
+            room,
         })
     }
 
