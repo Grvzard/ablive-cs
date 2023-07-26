@@ -1,17 +1,50 @@
 import logging
+import json
+from multiprocessing import Queue
+from threading import Thread
 
 from .blrec import Danmaku, DanmakuCommand, DanmakuListener
+from .storer import Storer
+from .table_schema import Schema
 
 logger = logging.getLogger(__name__)
 
 
-class PackDog(DanmakuListener):
-    def __init__(self, buffer):
-        self.buffer = buffer
+def read_json(filename: str):
+    with open(filename, encoding='utf-8') as config:
+        return json.load(config)
+
+
+class Packer(DanmakuListener):
+    def __init__(self, mysql_config):
+        self.buffer = {}
+        self.storers = []
+
+        for schema_name, schema_schema in read_json('ablive_schema.json').items():
+            buffer = Queue()
+            self.buffer[schema_name] = buffer
+            storer = Storer(
+                mysql_config,
+                Schema(**schema_schema),
+                buffer,
+                schema_name
+            )
+            self.storers.append(storer)
+            # storer.init_db()
+
         self.buffer_dm = self.buffer['ablive_dm']
         self.buffer_en = self.buffer['ablive_en']
         self.buffer_gf = self.buffer['ablive_gf']
         self.buffer_sc = self.buffer['ablive_sc']
+    
+    def run(self):
+        th_list = []
+        for s in self.storers:
+            th = Thread(target=s.run)
+            th_list.append(th)
+            th.start()
+
+        [th.join() for th in th_list]
 
     async def on_danmaku_received(self, danmu: Danmaku) -> None:
         cmd: str = danmu['cmd']

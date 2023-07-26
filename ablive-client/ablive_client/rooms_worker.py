@@ -5,11 +5,12 @@ import aiohttp
 from tenacity import retry, stop_after_attempt, stop_after_delay
 
 from .blrec import DanmakuClient, DanmakuListener
+from .blrec.event_emitter import EventEmitter
 
 logger = logging.getLogger(__name__)
 
 
-class RoomsWorker:
+class RoomsWorker(EventEmitter[DanmakuListener]):
     def __init__(
         self,
         detail: str,
@@ -17,22 +18,19 @@ class RoomsWorker:
         server_url: str,
         add_room_interval: float = 0.05,
     ):
+        super().__init__()
         self.worker_id = ''
         self.REQUEST_HEADER = {'x-api-key': api_key}
         self.REG_DETAIL = {'detail': detail}
         self.SERVER_URL = server_url
         self.ADD_ROOM_INTERVAL = add_room_interval
         self.async_sem = asyncio.Semaphore(200)
-        self.pack_dogs = set()
 
     def _renew_states(self) -> None:
         self.rooms = set()
         self._tasks = set()
         self.dc_dict = {}
         self._adjusting = 0
-
-    def add_packdog(self, packer: DanmakuListener) -> None:
-        self.pack_dogs.add(packer)
 
     @retry(reraise=True, stop=stop_after_attempt(2))
     async def _worker_reg(self) -> None:
@@ -140,7 +138,7 @@ class RoomsWorker:
             room_id=room_id,
         )
         self.rooms.add(room)
-        for packer in self.pack_dogs:
+        for packer in self._listeners:
             dc.add_listener(packer)
         self.dc_dict[liverid] = dc
         # await dc._do_start()

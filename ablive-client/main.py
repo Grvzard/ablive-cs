@@ -6,8 +6,7 @@ from multiprocessing import Process
 from threading import Thread
 
 from ablive_client.rooms_worker import RoomsWorker
-from ablive_client.store_dog import StoreDog
-from ablive_client.pack_dog import PackDog
+from ablive_client.packer import Packer
 from configs import *
 
 logging.basicConfig(
@@ -22,20 +21,20 @@ _h.setLevel(logging.ERROR)
 logger.addHandler(_h)
 
 
-def new_worker_process(trd: int, buffer: dict):
+def new_worker_process(trd: int, packer):
     if THRD_PER_PROC == 1:
-        worker_thread(buffer)
+        worker_thread(packer)
     else:
         th_list = []
         for _ in range(0, trd):
-            th = Thread(target=worker_thread, args=(buffer,))
+            th = Thread(target=worker_thread, args=(packer,))
             th_list.append(th)
             th.start()
 
         [th.join() for th in th_list]
 
 
-def worker_thread(buffer: dict):
+def worker_thread(packer):
     rooms_worker = RoomsWorker(
         detail = f'{MACHINE_ID}-{os.getpid()}',
         api_key = SERVER_API_KEY,
@@ -43,20 +42,23 @@ def worker_thread(buffer: dict):
         server_url = ABLIVE_SERVER_URL,
     )
 
-    rooms_worker.add_packdog(PackDog(buffer))
+    rooms_worker.add_listener(packer)
 
     while True:
         logger.info("new rooms-worker started")
         try:
             asyncio.run(rooms_worker.run())
+        except KeyboardInterrupt as e:
+            break
         except Exception as e:
             logger.error(f'worker thread: {e}')
-        time.sleep(5)
+            time.sleep(5)
 
 
-if __name__ == "__main__":
-    store_dog = StoreDog(MY_DB_CONFIG)
-    p_sd = Process(target=store_dog.run)
+def main():
+    packer = Packer(MY_DB_CONFIG)
+    # store_dog = StoreDog(MY_DB_CONFIG)
+    p_sd = Process(target=packer.run)
     p_sd.start()
 
     proc_needs = THRD_TOTAL
@@ -69,7 +71,7 @@ if __name__ == "__main__":
 
         proc_needs -= THRD_PER_PROC
 
-        p = Process(target=new_worker_process, args=(trd_num, store_dog.buffer))
+        p = Process(target=new_worker_process, args=(trd_num, packer))
         p.start()
 
         time.sleep(90)
@@ -77,3 +79,7 @@ if __name__ == "__main__":
     p_sd.join()
 
     logger.error("over")
+
+
+if __name__ == "__main__":
+    main()
