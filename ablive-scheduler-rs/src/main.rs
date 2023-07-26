@@ -200,7 +200,7 @@ async fn adjust_workers(
             length: rooms.len() as i32,
             rooms,
         };
-        dbg!("{}", worker.length);
+        log::debug!("{}", worker.length);
     }
     let mut workers_nonfull: VecDeque<&mut RoomsWorker> = workers
         .iter_mut()

@@ -10,6 +10,7 @@ dependencies = [
  "chrono",
  "config",
  "futures",
+ "log",
  "mongodb",
  "serde",
  "tokio",
