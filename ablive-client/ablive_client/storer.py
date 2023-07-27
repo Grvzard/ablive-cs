@@ -22,12 +22,12 @@ def date2ts(date_):
 class Storer:
     def __init__(
         self,
-        mysql_config: dict,
+        mysql_dsn: str,
         table_gen: Callable[[str], sa.Table],
         buffer: asyncio.Queue,
         name: str,
     ):
-        self.mysql_config = mysql_config
+        self.mysql_dsn = mysql_dsn
         self.buffer = buffer
         self._table_gen = table_gen
         self.schema_name = name
@@ -47,9 +47,7 @@ class Storer:
 
     async def init_db(self):
         self._db_instance = databases.Database(
-            "mysql+asyncmy://%(user)s:%(password)s@%(host)s:%(port)s/"
-            % self.mysql_config
-            + self.schema_name,
+            self.mysql_dsn + self.schema_name,
         )
         await self._db_instance.connect()
         await self._new_table()

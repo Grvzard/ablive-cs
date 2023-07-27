@@ -6,3 +6,4 @@ orjson >= 3.8.0, < 3.9.0
 attrs >= 22.1.0, < 22.2.0
 aiodns
 faust-cchardet == 2.1.18
+pydantic-settings
