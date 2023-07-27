@@ -25,11 +25,15 @@ class RoomsWorker(EventEmitter[DanmakuListener]):
         self.SERVER_URL = server_url
         self.ADD_ROOM_INTERVAL = add_room_interval
         self.async_sem = asyncio.Semaphore(200)
+        self._packers: set[DanmakuListener] = set()
+
+    def add_packer(self, packer: DanmakuListener):
+        self._packers.add(packer)
 
     def _renew_states(self) -> None:
         self.rooms = set()
         self._tasks = set()
-        self.dc_dict = {}
+        self.dc_dict: dict[int, DanmakuClient] = {}
         self._adjusting = 0
 
     @retry(reraise=True, stop=stop_after_attempt(2))
@@ -129,6 +133,7 @@ class RoomsWorker(EventEmitter[DanmakuListener]):
             await self._adjust_rooms([])
             await self.bili_session.close()
             await self.ablive_session.close()
+            await asyncio.sleep(3)
 
     async def add_room(self, room: tuple[int, int]):
         liverid, room_id = room
@@ -138,7 +143,7 @@ class RoomsWorker(EventEmitter[DanmakuListener]):
             room_id=room_id,
         )
         self.rooms.add(room)
-        for packer in self._listeners:
+        for packer in self._packers:
             dc.add_listener(packer)
         self.dc_dict[liverid] = dc
         # await dc._do_start()

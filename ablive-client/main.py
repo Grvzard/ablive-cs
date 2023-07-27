@@ -3,38 +3,32 @@ import logging
 import os
 import time
 from multiprocessing import Process
-from threading import Thread
 
 from ablive_client.rooms_worker import RoomsWorker
 from ablive_client.packer import Packer
 from configs import *
 
-logging.basicConfig(
-    format="[%(asctime)s][%(module)s] %(message)s"
-)
-logger = logging.getLogger()
-logger.setLevel(logging.INFO)
 
-_h = logging.FileHandler('error.log', encoding='utf-8')
-_h.setFormatter(logging.Formatter("[%(asctime)s] %(message)s"))
-_h.setLevel(logging.ERROR)
-logger.addHandler(_h)
+def config_logging():
+    _h1 = logging.FileHandler('error.log', encoding='utf-8')
+    _h1.setLevel(logging.WARN)
+    _h2 = logging.StreamHandler()
+    _h2.setLevel(logging.INFO)
+    logging.basicConfig(
+        format="[%(asctime)s][%(module)s] %(message)s",
+        level=logging.INFO,
+        handlers=[_h1, _h2]
+    )
 
-
-def new_worker_process(trd: int, packer):
-    if THRD_PER_PROC == 1:
-        worker_thread(packer)
-    else:
-        th_list = []
-        for _ in range(0, trd):
-            th = Thread(target=worker_thread, args=(packer,))
-            th_list.append(th)
-            th.start()
-
-        [th.join() for th in th_list]
+config_logging()
+logger = logging.getLogger(__name__)
 
 
-def worker_thread(packer):
+def new_worker_process():
+    asyncio.run(worker_thread())
+
+
+async def worker_thread():
     rooms_worker = RoomsWorker(
         detail = f'{MACHINE_ID}-{os.getpid()}',
         api_key = SERVER_API_KEY,
@@ -42,41 +36,35 @@ def worker_thread(packer):
         server_url = ABLIVE_SERVER_URL,
     )
 
-    rooms_worker.add_listener(packer)
+    packer = Packer(MY_DB_CONFIG)
+    rooms_worker.add_packer(packer)
+    await packer.run()
 
     while True:
         logger.info("new rooms-worker started")
         try:
-            asyncio.run(rooms_worker.run())
-        except KeyboardInterrupt as e:
+            await rooms_worker.run()
+        except KeyboardInterrupt as _:
+            logger.warn("worker thread stoped")
             break
         except Exception as e:
             logger.error(f'worker thread: {e}')
-            time.sleep(5)
+            # time.sleep(5)
+            await asyncio.sleep(5)
 
 
 def main():
-    packer = Packer(MY_DB_CONFIG)
-    # store_dog = StoreDog(MY_DB_CONFIG)
-    p_sd = Process(target=packer.run)
-    p_sd.start()
+    p_list = []
 
-    proc_needs = THRD_TOTAL
-    while proc_needs > 0:
-        trd_num: int
-        if proc_needs >= THRD_PER_PROC:
-            trd_num = THRD_PER_PROC
-        else:
-            trd_num = proc_needs
-
-        proc_needs -= THRD_PER_PROC
-
-        p = Process(target=new_worker_process, args=(trd_num, packer))
+    for _ in range(THRD_TOTAL):
+        p = Process(target=new_worker_process)
         p.start()
+        p_list.append(p)
 
         time.sleep(90)
 
-    p_sd.join()
+    # p_sd.join()
+    [p.join() for p in p_list]
 
     logger.error("over")
 
