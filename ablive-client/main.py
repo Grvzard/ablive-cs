@@ -6,7 +6,9 @@ from multiprocessing import Process
 
 from ablive_client.rooms_worker import RoomsWorker
 from ablive_client.packer import Packer
-from configs import *
+from ablive_client.configs import Settings
+
+settings = Settings() # type: ignore
 
 
 def config_logging():
@@ -30,13 +32,13 @@ def new_worker_process():
 
 async def worker_thread():
     rooms_worker = RoomsWorker(
-        detail = f'{MACHINE_ID}-{os.getpid()}',
-        api_key = SERVER_API_KEY,
-        add_room_interval = ADD_ROOM_INTERVAL,
-        server_url = ABLIVE_SERVER_URL,
+        detail = f'{settings.machine_id}-{os.getpid()}',
+        api_key = settings.server_api_key,
+        add_room_interval = settings.add_room_interval,
+        server_url = settings.server_url,
     )
 
-    packer = Packer(MY_DB_CONFIG)
+    packer = Packer(settings.packer1_mysql_dsn)
     rooms_worker.add_packer(packer)
     await packer.run()
 
@@ -56,7 +58,7 @@ async def worker_thread():
 def main():
     p_list = []
 
-    for _ in range(THRD_TOTAL):
+    for _ in range(settings.workers_num):
         p = Process(target=new_worker_process)
         p.start()
         p_list.append(p)
