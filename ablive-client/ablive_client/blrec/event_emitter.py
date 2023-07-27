@@ -1,5 +1,4 @@
 from abc import ABC
-from contextlib import suppress
 from typing import Any, Generic, TypeVar
 
 __all__ = 'EventListener', 'EventEmitter'

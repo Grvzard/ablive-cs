@@ -46,7 +46,7 @@ async def worker_thread():
         logger.info("new rooms-worker started")
         try:
             await rooms_worker.run()
-        except KeyboardInterrupt as _:
+        except KeyboardInterrupt:
             logger.warn("worker thread stoped")
             break
         except Exception as e:
